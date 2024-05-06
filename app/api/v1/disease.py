@@ -11,6 +11,7 @@ router = APIRouter(prefix="/disease", tags=["Disease"])
 async def diagnose(file: UploadFile = File(...)):
     seg_model, classif_model, rf, anomaly_extractor = load_models()
     contents = await file.read()
+    print(contents)
     img = read_image(contents)
 
     mask = seg_model.segment(img)
