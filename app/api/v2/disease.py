@@ -1,4 +1,6 @@
 import base64
+import matplotlib.pyplot as plt
+import tensorflow as tf
 import numpy as np
 from io import BytesIO
 
@@ -40,28 +42,16 @@ async def diagnose(body: DiagnoseBody):
     output = rf.predict([prob_jsw])[0]
     anomaly_map = anomaly_extractor.extract(mask, img, verbose=0)
 
-    # Assuming anomaly_map is a TensorFlow tensor
-    # Convert TensorFlow tensor to NumPy array
-    anomaly_map_np = anomaly_map.numpy()
+    plt.imshow(img, cmap="gray")
+    plt.imshow(anomaly_map, cmap="turbo", alpha=0.3)
+    plt.axis("off")
 
-    # Normalize the array to be between 0 and 255 (if necessary)
-    anomaly_map_np = (
-        (anomaly_map_np - np.min(anomaly_map_np)) / (np.max(anomaly_map_np) - np.min(anomaly_map_np))
-    ) * 255
+    # Save the rendered image to a buffer
+    buffer = BytesIO()
+    plt.savefig(buffer, format='png', bbox_inches='tight', pad_inches=0, transparent=True)
+    buffer.seek(0)
 
-    # Convert the NumPy array to PIL image
-    anomaly_map_img = Image.fromarray(anomaly_map_np.astype("uint8"))
-
-    # Convert the PIL image to bytes
-    img_byte_array = BytesIO()
-    anomaly_map_img.save(img_byte_array, format="PNG")
-    img_bytes = img_byte_array.getvalue()
-
-    # Encode bytes to base64
-    base64_encoded_image = base64.b64encode(img_bytes).decode("utf-8")
-
-    # print(output, anomaly_map)
-    # print(type(output))
-    # print(type(anomaly_map))
+    # Convert the buffer to base64
+    base64_encoded_image = base64.b64encode(buffer.getvalue()).decode('utf-8')
 
     return {"class": int(output), "anomaly_map": base64_encoded_image}
