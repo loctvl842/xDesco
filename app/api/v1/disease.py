@@ -1,22 +1,17 @@
-import base64
-from io import BytesIO
-
-from fastapi import APIRouter
-from PIL import Image
+from fastapi import APIRouter, File, UploadFile
 
 from ai_kit import load_models
-from ai_kit.jsw import calculate_diff, get_JSW
-from ai_kit.utils import combine_prob_jsw
+from ai_kit.utils import read_image, combine_prob_jsw
+from ai_kit.jsw import get_JSW, calculate_diff
 
 router = APIRouter(prefix="/disease", tags=["Disease"])
 
 
 @router.post("/diagnose")
-async def diagnose(base64_data: str):
+async def diagnose(file: UploadFile = File(...)):
     seg_model, classif_model, rf, anomaly_extractor = load_models()
-
-    contents = base64.b64decode(base64_data)
-    img = Image.open(BytesIO(contents))
+    contents = await file.read()
+    img = read_image(contents)
 
     mask = seg_model.segment(img)
 

@@ -1,17 +1,27 @@
-from fastapi import APIRouter, File, UploadFile
+import base64
+from io import BytesIO
+
+from fastapi import APIRouter
+from PIL import Image
+from pydantic import BaseModel
 
 from ai_kit import load_models
-from ai_kit.utils import read_image, combine_prob_jsw
-from ai_kit.jsw import get_JSW, calculate_diff
+from ai_kit.jsw import calculate_diff, get_JSW
+from ai_kit.utils import combine_prob_jsw
 
 router = APIRouter(prefix="/disease", tags=["Disease"])
 
 
+class DiagnoseBody(BaseModel):
+    image: str
+
+
 @router.post("/diagnose")
-async def diagnose(file: UploadFile = File(...)):
+async def diagnose(body: DiagnoseBody):
     seg_model, classif_model, rf, anomaly_extractor = load_models()
-    contents = await file.read()
-    img = read_image(contents)
+
+    contents = base64.b64decode(body.image)
+    img = Image.open(BytesIO(contents))
 
     mask = seg_model.segment(img)
 
