@@ -1,0 +1,13 @@
+
+services:
+  app:
+    image: loctvl842/xdesco
+    container_name: xdesco
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    environment:
+      - ENV=production
+    network_mode: "host"
+    volumes:
+      - ..:/app
