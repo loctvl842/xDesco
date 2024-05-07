@@ -8,7 +8,7 @@ class CoreSettings(BaseSettings):
     ENV: Literal["development", "production"] = "development"
     DEBUG: bool = True
     APP_HOST: str = "0.0.0.0"
-    APP_PORT: int = 5000
+    APP_PORT: int = 5001
     LOG_LEVEL: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = "INFO"
 
 

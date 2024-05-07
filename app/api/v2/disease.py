@@ -12,7 +12,7 @@ router = APIRouter(prefix="/disease", tags=["Disease"])
 
 
 class DiagnoseBody(BaseModel):
-    image: str
+    diagnosticImage: str
 
 
 @router.post("/diagnose")
@@ -20,7 +20,7 @@ async def diagnose(body: DiagnoseBody, request: Request):
     seg_model, classif_model, rf, anomaly_extractor = request.app.state.models
 
     # Add padding if necessary
-    base64_image_string = body.image.split(",")[1]
+    base64_image_string = body.diagnosticImage.split(",")[1]
     contents = base64.b64decode(base64_image_string)
 
     # Decode base64-encoded string
@@ -50,4 +50,4 @@ async def diagnose(body: DiagnoseBody, request: Request):
     # Convert the buffer to base64
     base64_encoded_image = base64.b64encode(buffer.getvalue()).decode("utf-8")
 
-    return {"class": int(output), "anomaly_map": base64_encoded_image}
+    return {"result1": int(output), "result2": int(output), "image1": base64_encoded_image}
