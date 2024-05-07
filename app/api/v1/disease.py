@@ -1,6 +1,5 @@
-from fastapi import APIRouter, File, UploadFile
+from fastapi import APIRouter, File, Request, UploadFile
 
-from ai_kit import load_models
 from ai_kit.utils import read_image, combine_prob_jsw
 from ai_kit.jsw import get_JSW, calculate_diff
 
@@ -8,8 +7,8 @@ router = APIRouter(prefix="/disease", tags=["Disease"])
 
 
 @router.post("/diagnose")
-async def diagnose(file: UploadFile = File(...)):
-    seg_model, classif_model, rf, anomaly_extractor = load_models()
+async def diagnose(request: Request, file: UploadFile = File(...)):
+    seg_model, classif_model, rf, anomaly_extractor = request.app.state.models
     contents = await file.read()
     print(contents)
     img = read_image(contents)

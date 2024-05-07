@@ -1,9 +1,13 @@
-from app.api import router
-from core.cache import Cache, DefaultKeyMaker, RedisBackend
-from core.settings import settings
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware import Middleware
 from fastapi.middleware.cors import CORSMiddleware
+
+from ai_kit import load_models
+from app.api import router
+from core.cache import Cache, DefaultKeyMaker, RedisBackend
+from core.settings import settings
 
 
 def init_routers(app_: FastAPI) -> None:
@@ -27,6 +31,13 @@ def init_cache() -> None:
     Cache.configure(backend=RedisBackend(), key_maker=DefaultKeyMaker())
 
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    seg_model, classif_model, rf, anomaly_extractor = load_models()
+    app.state.models = seg_model, classif_model, rf, anomaly_extractor
+    yield
+
+
 def create_app() -> FastAPI:
     app_ = FastAPI(
         title="Trading Logic",
@@ -35,6 +46,7 @@ def create_app() -> FastAPI:
         docs_url=None if settings.ENV == "production" else "/docs",
         redoc_url=None if settings.ENV == "production" else "/redoc",
         middleware=make_middleware(),
+        lifespan=lifespan,
     )
     app_.settings = settings
     init_routers(app_)
@@ -43,3 +55,7 @@ def create_app() -> FastAPI:
 
 
 app = create_app()
+
+
+def get_app() -> FastAPI:
+    return app

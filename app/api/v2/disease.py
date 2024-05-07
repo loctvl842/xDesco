@@ -1,14 +1,10 @@
 import base64
-import matplotlib.pyplot as plt
-import tensorflow as tf
-import numpy as np
 from io import BytesIO
 
-from fastapi import APIRouter
-from PIL import Image
+import matplotlib.pyplot as plt
+from fastapi import APIRouter, Request
 from pydantic import BaseModel
 
-from ai_kit import load_models
 from ai_kit.jsw import calculate_diff, get_JSW
 from ai_kit.utils import combine_prob_jsw, read_image
 
@@ -20,8 +16,8 @@ class DiagnoseBody(BaseModel):
 
 
 @router.post("/diagnose")
-async def diagnose(body: DiagnoseBody):
-    seg_model, classif_model, rf, anomaly_extractor = load_models()
+async def diagnose(body: DiagnoseBody, request: Request):
+    seg_model, classif_model, rf, anomaly_extractor = request.app.state.models
 
     # Add padding if necessary
     base64_image_string = body.image.split(",")[1]
@@ -48,10 +44,10 @@ async def diagnose(body: DiagnoseBody):
 
     # Save the rendered image to a buffer
     buffer = BytesIO()
-    plt.savefig(buffer, format='png', bbox_inches='tight', pad_inches=0, transparent=True)
+    plt.savefig(buffer, format="png", bbox_inches="tight", pad_inches=0, transparent=True)
     buffer.seek(0)
 
     # Convert the buffer to base64
-    base64_encoded_image = base64.b64encode(buffer.getvalue()).decode('utf-8')
+    base64_encoded_image = base64.b64encode(buffer.getvalue()).decode("utf-8")
 
     return {"class": int(output), "anomaly_map": base64_encoded_image}
