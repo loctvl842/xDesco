@@ -8,6 +8,7 @@ services:
       dockerfile: docker/Dockerfile
     environment:
       - ENV=production
-    network_mode: "host"
+    ports:
+      - "5001:5001"
     volumes:
       - ..:/app
